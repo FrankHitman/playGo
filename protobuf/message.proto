@@ -1,0 +1,12 @@
+syntax = "proto3";
+package proto;
+enum FOO
+{
+    X = 0;
+};
+
+message UserInfo{
+    string message = 1;
+    int32 length = 2;
+    int32 cnt = 3;
+}

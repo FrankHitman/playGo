@@ -1,0 +1,7 @@
+p, admin, /*, ^*$
+p, anonymous, */login, POST
+p, member_read, /*, GET
+p, member_write, /*, (POST)|(PUT)|(DELETE)
+p, installer1, /charger/1, ^*$
+
+g, admin, admin

@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"fmt"
 	"hash"
 	"io"
 	"log"
@@ -13,15 +14,11 @@ import (
 )
 
 func main() {
-	var fileName = pflag.StringP("filename", "f", "download.zip", "the name of file to be checked, this file must in the same directory with 'checkfile'.")
+	var fileName = pflag.StringP("filename", "f", "", "name of the file to be encrypted.")
 	var algorithms = pflag.StringP("algorithms", "a", "sha256", "algorithms to be used, such as sha256, md5, sha1.")
-	pflag.Parse()
+	var input = pflag.StringP("input", "i", "", "strings to be encrypted.")
 
-	f, err := os.Open(*fileName)
-	if err != nil {
-		log.Fatal("open file failed: ", err)
-	}
-	defer f.Close()
+	pflag.Parse()
 
 	var h hash.Hash
 	if *algorithms == "sha256" {
@@ -38,11 +35,24 @@ func main() {
 		os.Exit(0)
 	}
 
-	if _, err := io.Copy(h, f); err != nil {
-		log.Fatal(err)
+	if *fileName != "" {
+		f, err := os.Open(*fileName)
+		if err != nil {
+			log.Fatal("open file failed: ", err)
+		}
+		defer f.Close()
+
+		if _, err := io.Copy(h, f); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("%s's %s is: %x\n", *fileName, *algorithms, h.Sum(nil))
 	}
 
-	log.Printf("%s's %s is: %x\n", *fileName, *algorithms, h.Sum(nil))
+	if *input != "" {
+		h.Write([]byte(*input))
+		fmt.Printf("%s's %s is: %x\n", *input, *algorithms, h.Sum(nil))
+
+	}
 
 }
 

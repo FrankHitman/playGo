@@ -355,14 +355,50 @@ What is the impact of synchronous or asynchronous replication?
   - lower consistency, disconnection -> inconsistent -> conflicts/divergent ->
     How to deal with the conflicts？ -> versioning data
   
-### Versioning Data
+### Versioning Data 标记数据版本
+- One possible way, marking the data with timestamp. 给数据打上时间戳
+  - disadvantages: time isn't reliable in distributed system. 
+    - maybe the timestamps between different servers are not consistent. 不同服务器时间本身可能有时差
+    - the timestamps of writing data are affected by unstable network latency. 
+      maybe the first writing data arrives at the last.  写数据有延迟，影响时间精度
+- vector clock
+  `put(key, context, value)` context holds the metadata for each object.
 
+#### quorum(法定人数) systems 投票系统
+- n: Replication factor. The coordinator is the first among the top n nodes in the preference list.
+- r: The r means the minimum number of nodes that need to be part of a successful read operation, 
+- w: w is the minimum number of nodes involved in a successful write operation.
+  we’ll use a quorum-like system by setting `r+w>n`.
 
+n=3, w=2 example:
+![replication factor1](repication-factor1.jpg)
 
+![replication factor2](replication-factor2.jpg)
 
+### Failover 容灾备份
+- sloppy quorum 少数多数表决
+- strict quorum 绝对多数表决
 
+Merkle tree.
+Merkle 树减少了必须交换的数据量。例如，如果两棵树的根的哈希值相同并且它们的叶节点也相同，则不需要同步。
+子节点的 merkle 值改变会相应的改变根节点。
+![merkle-value-of-root-node-reflect-all-its-leaf-node](merkle-value-of-root-node-reflect-all-its-leaf-node.jpg)
 
+#### Anti-entropy（熵） with Merkle trees
+The merkle trees of nodeA and nodeB:
+![ranges-of-each-virtual-node](ranges-of-each-virtual-node.jpg)
+![ranges-of-each-virtual-node-in-table](ranges-of-each-virtual-node-in-table.jpg)
+![merkle-tree-for-node-a](merkle-tree-for-node-a.jpg)
 
+Add a new virtual node for nodeA
+![new-node-is-added](new-node-is-added.jpg)
+![ranges-of-each-virtual-node-after-modification](ranges-of-each-virtual-node-after-modification.jpg)
+The updated Merkle tree for Node A:
+![merkle-tree-for-nodeA-after-modification](merkle-tree-for-nodeA-after-modification.jpg)
+The updated Merkle tree for Node B:
+![merkle-tree-for-nodeB-after-modification](merkle-tree-for-nodeB-after-modification.jpg)
+- 优点就是比较的时候不用比较全部节点；比较父节点就可以知道数据是否一致，是否有变化了。
+- 缺点是子节点的值有变化的时候，会重新计算整个分支上节点的值。
 
 
 
